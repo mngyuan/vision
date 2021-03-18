@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,6 +13,7 @@
 		BBC91A0125DB0D4700A62946 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBC91A0025DB0D4700A62946 /* Preview Assets.xcassets */; };
 		BBC91A0C25DB0D4700A62946 /* visionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC91A0B25DB0D4700A62946 /* visionTests.swift */; };
 		BBC91A1725DB0D4700A62946 /* visionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC91A1625DB0D4700A62946 /* visionUITests.swift */; };
+		BBC91A2925DB0E0C00A62946 /* AudioKit in Frameworks */ = {isa = PBXBuildFile; productRef = BBC91A2825DB0E0C00A62946 /* AudioKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +53,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BBC91A2925DB0E0C00A62946 /* AudioKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -146,6 +148,9 @@
 			dependencies = (
 			);
 			name = vision;
+			packageProductDependencies = (
+				BBC91A2825DB0E0C00A62946 /* AudioKit */,
+			);
 			productName = vision;
 			productReference = BBC919F625DB0D4600A62946 /* vision.app */;
 			productType = "com.apple.product-type.application";
@@ -217,6 +222,9 @@
 				Base,
 			);
 			mainGroup = BBC919ED25DB0D4600A62946;
+			packageReferences = (
+				BBC91A2725DB0E0C00A62946 /* XCRemoteSwiftPackageReference "AudioKit" */,
+			);
 			productRefGroup = BBC919F725DB0D4600A62946 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -580,6 +588,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BBC91A2725DB0E0C00A62946 /* XCRemoteSwiftPackageReference "AudioKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AudioKit/AudioKit";
+			requirement = {
+				branch = "v5-main";
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BBC91A2825DB0E0C00A62946 /* AudioKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BBC91A2725DB0E0C00A62946 /* XCRemoteSwiftPackageReference "AudioKit" */;
+			productName = AudioKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BBC919EE25DB0D4600A62946 /* Project object */;
 }
