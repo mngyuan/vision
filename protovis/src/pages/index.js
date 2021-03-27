@@ -51,12 +51,19 @@ export default function Home() {
   const locationRef = useRef({x: 0, y: 0, z: 0, velX: 0, velY: 0, velZ: 0});
   const [mainSynth, setMainSynth] = useState();
   const [mainEnv, setMainEnv] = useState();
-  const [lfoVal, setLfoVal] = useState(1000);
   const [absOrientationSensor, setAbsOrientationSensor] = useState();
   const [initAngle, setInitAngle] = useState(null);
   const minMaxRef = useRef({
-    max: {x: -Infinity, y: -Infinity, z: -Infinity},
-    min: {x: Infinity, y: Infinity, z: Infinity},
+    max: {
+      x: -Infinity,
+      y: -Infinity,
+      z: -Infinity,
+    },
+    min: {
+      x: Infinity,
+      y: Infinity,
+      z: Infinity,
+    },
   });
 
   useEffect(() => {
@@ -91,27 +98,37 @@ export default function Home() {
 
   useEffect(() => {
     if (mainSynth) {
-      const intervalId = setInterval(() => {
-        console.log('trig', locationRef.current);
+      let repeatEveryMs = maprange(
+        locationRef.current.yaw || 100,
+        -Math.PI,
+        Math.PI,
+        100,
+        1000,
+      );
+      const triggerNote = () => {
+        console.log('trig');
         mainSynth.triggerAttackRelease(
           Math.max(
-            maprange(
-              locationRef.current.x,
-              MINMAXES.min.x,
-              MINMAXES.max.x,
-              0,
-              15000,
-            ),
+            maprange(locationRef.current.roll, -Math.PI, Math.PI, 0, 2000),
             0,
           ),
-          lfoVal / 2 / 1000,
+          repeatEveryMs / 2 / 1000,
           '+0',
           0.5,
         );
-      }, lfoVal);
+        repeatEveryMs = maprange(
+          locationRef.current.yaw,
+          -Math.PI,
+          Math.PI,
+          100,
+          1000,
+        );
+        setTimeout(triggerNote, repeatEveryMs);
+      };
+      const timeoutId = setTimeout(triggerNote, repeatEveryMs);
       return () => {
         console.log('clear');
-        clearInterval(intervalId);
+        clearTimeout(timeoutId);
       };
     }
   }, [mainSynth]);
@@ -127,9 +144,9 @@ export default function Home() {
       <pre>{locationDebugText}</pre>
       <div
         className={styles.muteButton}
-        onClick={async () => {
+        onClick={() => {
           if (!permissionGranted && muted) {
-            await Tone.start();
+            Tone.start();
             if (
               location.protocol === 'https:' &&
               typeof DeviceMotionEvent.requestPermission === 'function'
@@ -137,133 +154,25 @@ export default function Home() {
               DeviceMotionEvent.requestPermission().then(async (resp) => {
                 if (resp === 'granted') {
                   setPermissionGranted(true);
-                  //window.addEventListener(
-                  //'deviceorientation',
-                  //(e) => {
-                  //setOrientationDebugText(
-                  //'a: ' +
-                  //e.alpha.toFixed(2) +
-                  //'\n' +
-                  //'b: ' +
-                  //e.beta.toFixed(2) +
-                  //'\n' +
-                  //'g: ' +
-                  //e.gamma.toFixed(2) +
-                  //'\n',
-                  //);
-                  //},
-                  //true,
-                  //);
-                  //window.addEventListener(
-                  //'devicemotion',
-                  //(e) => {
-                  //setMotionDebugText(
-                  //'x: ' +
-                  //e.acceleration.x +
-                  //'\n' +
-                  //'y: ' +
-                  //e.acceleration.y +
-                  //'\n' +
-                  //'z: ' +
-                  //e.acceleration.z +
-                  //'\n',
-                  //);
-                  //locationRef.current.velX =
-                  //locationRef.current.velX +
-                  //e.acceleration.x * e.interval;
-                  //locationRef.current.velY =
-                  //locationRef.current.velY +
-                  //e.acceleration.y * e.interval;
-                  //locationRef.current.velZ =
-                  //locationRef.current.velZ +
-                  //e.acceleration.z * e.interval;
-                  //locationRef.current.x =
-                  //locationRef.current.x +
-                  //locationRef.current.velX * e.interval;
-                  //locationRef.current.y =
-                  //locationRef.current.y +
-                  //locationRef.current.velY * e.interval;
-                  //locationRef.current.z =
-                  //locationRef.current.z +
-                  //locationRef.current.velZ * e.interval;
-                  //setLocationDebugText(
-                  //'locX' +
-                  //locationRef.current.x +
-                  //'\n' +
-                  //'locY' +
-                  //locationRef.current.y +
-                  //'\n' +
-                  //locationRef.current.z,
-                  //);
-                  //},
-                  //true,
-                  //);
-
                   const MotionSensors = await import('../motion-sensors.js');
-                  const {
-                    AbsoluteOrientationSensor,
-                    LinearAccelerationSensor,
-                  } = MotionSensors;
+                  const {AbsoluteOrientationSensor} = MotionSensors;
                   const absOSensor = new AbsoluteOrientationSensor();
-                  //const linearASensor = new LinearAccelerationSensor({
-                  //frequency: 60,
-                  //});
-                  //const results = await Promise.all([
-                  //navigator.permissions.query({name: 'accelerometer'}),
-                  //navigator.permissions.query({name: 'magnetometer'}),
-                  //navigator.permissions.query({name: 'gyroscope'}),
-                  //]);
-                  //if (results.every((result) => result.state === 'granted')) {
-                  //setAbsOrientationSensor(absOSensor);
-                  //absOSensor.start();
-                  //} else {
-                  //console.log('No permissions to use AbsoluteOrientationSensor.');
-                  //}
                   absOSensor.addEventListener('reading', () => {
+                    // goes from -Math.PI to Math.PI
                     const angles = toEuler(absOSensor.quaternion);
-                    if (initAngle == null) {
-                      setInitAngle(angles);
-                    }
-                    const dist = angles.map((angle, i) =>
-                      calcDist(angle, initAngle ? initAngle[i] : 0),
-                    );
+                    locationRef.current.yaw = angles[0];
+                    locationRef.current.roll = angles[1];
+                    locationRef.current.pitch = angles[2];
                     setLocationDebugText(
-                      'x: ' +
-                        dist[0] +
+                      'yaw: ' +
+                        locationRef.current.yaw +
                         '\n' +
-                        'y: ' +
-                        dist[1] +
+                        'pitch: ' +
+                        locationRef.current.pitch +
                         '\n' +
-                        'z: ' +
-                        dist[2] +
+                        'roll: ' +
+                        locationRef.current.roll +
                         '\n',
-                    );
-                    locationRef.current.x = dist[0];
-                    locationRef.current.y = dist[1];
-                    locationRef.current.z = dist[2];
-                    minMaxRef.current.max.x = Math.max(
-                      minMaxRef.current.max.x,
-                      dist[0],
-                    );
-                    minMaxRef.current.max.y = Math.max(
-                      minMaxRef.current.max.y,
-                      dist[1],
-                    );
-                    minMaxRef.current.max.z = Math.max(
-                      minMaxRef.current.max.z,
-                      dist[2],
-                    );
-                    minMaxRef.current.min.x = Math.min(
-                      minMaxRef.current.min.x,
-                      dist[0],
-                    );
-                    minMaxRef.current.min.y = Math.min(
-                      minMaxRef.current.min.y,
-                      dist[1],
-                    );
-                    minMaxRef.current.min.z = Math.min(
-                      minMaxRef.current.min.z,
-                      dist[2],
                     );
                   });
                   absOSensor.addEventListener('error', (event) => {
@@ -271,25 +180,8 @@ export default function Home() {
                       console.log('Sensor is not available.');
                     }
                   });
-                  //linearASensor.addEventListener('reading', () => {
-                  //locationRef.current.velX += linearASensor.x / 60;
-                  //locationRef.current.x += locationRef.current.velX / 60;
-                  //setLocationDebugText(
-                  //'x: ' +
-                  //locationRef.current.x +
-                  //'\n' +
-                  //'velX: ' +
-                  //locationRef.current.velX,
-                  //);
-                  //});
-                  //linearASensor.addEventListener('error', (error) => {
-                  //if (event.error.name == 'NotReadableError') {
-                  //console.log('Sensor is not available.');
-                  //}
-                  //});
                   setAbsOrientationSensor(absOSensor);
                   absOSensor.start();
-                  //linearASensor.start();
                 } else {
                   console.log('failed perm');
                 }
